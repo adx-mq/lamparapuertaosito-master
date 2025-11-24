@@ -3,73 +3,49 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Interruptor Animado — PokéAPI</title>
+<title>Pokémon — ¿Qué Pokémon eres?</title>
 <style>
-/* Tu CSS pegado aquí */
 * {
   box-sizing: border-box;
 }
 :root {
-  --depth: 5vmin;
-  --on: 0;
   --size: 25vmin;
-  --bg: hsl(calc(200 - (var(--on) * 160)), calc((20 + (var(--on) * 50)) * 1%), calc((20 + (var(--on) * 60)) * 1%));
-  --cord: hsl(0, 0%, calc((60 - (var(--on) * 50)) * 1%));
-  --stroke: hsl(0, 0%, calc((60 - (var(--on) * 50)) * 1%));
-  --shine: hsla(0, 0%, 100%, calc(0.75 - (var(--on) * 0.5)));
-  --cap: hsl(0, 0%, calc((40 + (var(--on) * 30)) * 1%));
-  --filament: hsl(45, calc(var(--on) * 80%), calc((25 + (var(--on) * 75)) * 1%));
 }
 body {
   min-height: 100vh;
   display: flex;
   align-items: center;
   justify-content: center;
-  background: var(--bg);
+  background: #222;
   overflow: hidden;
-  font-family: system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial;
+  font-family: system-ui, Arial;
+  flex-direction: column;
+  gap: 1.2rem;
 }
-label {
-  position: absolute;
-  opacity: 0.5;
-  height: 100%;
-  width: 100%;
-  top: 0;
-  left: 0;
-  z-index: 2;
+
+/* BOTÓN NOTORIO */
+#pokemonBtn {
+  background: #ffcb05;
+  border: none;
+  padding: 14px 26px;
+  border-radius: 12px;
+  font-size: 1.2rem;
+  font-weight: bold;
+  cursor: pointer;
+  color: #2a75bb;
+  box-shadow: 0 0 12px #000;
+  transition: transform 0.15s ease;
 }
-input[type="checkbox"] {
-  height: 0;
-  width: 0;
-  position: fixed;
-  left: 100%;
-  transform: scale(0);
+
+#pokemonBtn:hover {
+  transform: scale(1.08);
 }
-.toggle {
-  height: var(--size);
-  width: var(--size);
-  transform: translate(-50%, -100%);
-  z-index: 2;
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate3d(-50%, -100%, calc(var(--depth) * 3));
+
+#pokemonBtn:active {
+  transform: scale(0.96);
 }
-/* Simple visual switch control for demo */
-.switch-ui{
-  position: absolute;
-  top: 1.5rem;
-  left: 50%;
-  transform: translateX(-50%);
-  z-index: 6;
-  display:flex;
-  align-items:center;
-  gap:0.5rem;
-  color: white;
-}
-.switch-ui input[type="checkbox"]{ transform: scale(1.4); cursor:pointer; }
+
 .pokemon-card {
-  margin-top: 20px;
   padding: 10px 18px;
   background: rgba(0,0,0,0.55);
   border-radius: 12px;
@@ -84,16 +60,10 @@ input[type="checkbox"] {
 </head>
 <body>
 
-<div class="switch-ui">
-  <label for="switchCheckbox">Encender luz y cargar Pokémon</label>
-  <input type="checkbox" id="switchCheckbox" aria-label="Interruptor" />
-</div>
+<!-- BOTÓN NUEVO -->
+<button id="pokemonBtn">¿Qué Pokémon eres?</button>
 
-<div class="toggle" aria-hidden="true">
-  <!-- Aquí iría tu SVG o elementos para la bombilla (opcional) -->
-</div>
-
-<!-- Zona donde aparecerá la tarjeta del Pokémon -->
+<!-- Tarjeta Pokémon -->
 <div id="pokemon" class="pokemon-card" aria-live="polite">
   <h2 id="poke-name"></h2>
   <img id="poke-img" src="" alt="Imagen del Pokémon" />
@@ -101,95 +71,41 @@ input[type="checkbox"] {
 </div>
 
 <script>
-// función que enciende/apaga la 'luz' y carga/oculta Pokémon
 async function loadPokemon() {
   const card = document.getElementById('pokemon');
   try {
-    const id = Math.floor(Math.random() * 151) + 1; // 1..151
+    const id = Math.floor(Math.random() * 151) + 1;
     const response = await fetch(`https://pokeapi.co/api/v2/pokemon/${id}`);
-    if (!response.ok) throw new Error('Error al obtener datos de la API');
+    if (!response.ok) throw new Error('Error al obtener datos');
+
     const data = await response.json();
 
     const nameEl = document.getElementById('poke-name');
     const imgEl = document.getElementById('poke-img');
     const typeEl = document.getElementById('poke-type');
 
-    nameEl.textContent = data.name ? data.name.toUpperCase() : 'N/A';
+    nameEl.textContent = data.name.toUpperCase();
 
-    // sprite por defecto (si no hay imagen, uso un placeholder SVG data URL)
-    const sprite = data.sprites && data.sprites.front_default ? data.sprites.front_default : '';
+    const sprite = data.sprites?.front_default || '';
     imgEl.src = sprite || 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="150" height="150"><rect width="100%" height="100%" fill="%23000"/><text x="50%" y="50%" font-size="18" fill="%23fff" text-anchor="middle" dominant-baseline="middle">sin imagen</text></svg>';
-    imgEl.alt = `Imagen de ${data.name || 'Pokémon'}`;
 
-    const firstType = data.types && data.types[0] && data.types[0].type && data.types[0].type.name ? data.types[0].type.name : 'desconocido';
+    const firstType = data.types?.[0]?.type?.name || 'desconocido';
     typeEl.textContent = 'Tipo: ' + firstType;
 
     card.style.display = 'block';
   } catch (err) {
     console.error(err);
-    // en caso de error mostramos un mensaje simple
-    const nameEl = document.getElementById('poke-name');
-    const imgEl = document.getElementById('poke-img');
-    const typeEl = document.getElementById('poke-type');
-    nameEl.textContent = 'Error al cargar';
-    imgEl.src = 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="150" height="150"><rect width="100%" height="100%" fill="%23000"/><text x="50%" y="50%" font-size="14" fill="%23fff" text-anchor="middle" dominant-baseline="middle">error</text></svg>';
-    typeEl.textContent = '';
+    document.getElementById('poke-name').textContent = 'Error al cargar';
+    document.getElementById('poke-img').src =
+      'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="150" height="150"><rect width="100%" height="100%" fill="%23000"/><text x="50%" y="50%" font-size="14" fill="%23fff" text-anchor="middle" dominant-baseline="middle">error</text></svg>';
+    document.getElementById('poke-type').textContent = '';
     card.style.display = 'block';
   }
 }
 
-function toggleLight(isOn) {
-  // isOn: boolean
-  const numeric = isOn ? 1 : 0;
-  document.documentElement.style.setProperty('--on', numeric);
-
-  const card = document.getElementById('pokemon');
-  if (isOn) {
-    // cargar un Pokémon cuando se enciende
-    loadPokemon();
-  } else {
-    // ocultar la tarjeta cuando se apaga
-    card.style.display = 'none';
-  }
-}
-
-// conectar el checkbox al comportamiento
-const checkbox = document.getElementById('switchCheckbox');
-checkbox.addEventListener('change', (e) => toggleLight(e.target.checked));
-
-// inicialización: respetar valor si el checkbox viene marcado
-toggleLight(checkbox.checked);
+// botón que carga pokémon
+document.getElementById('pokemonBtn').addEventListener('click', loadPokemon);
 </script>
 
 </body>
 </html>
-
-<!DOCTYPE html>
-<html lang="es">
-<head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Interruptor Animado — PokéAPI</title>
-<style>
-/* Tu CSS pegado aquí */
-* {
-  box-sizing: border-box;
-}
-:root {
-  --depth: 5vmin;
-  --on: 0;
-  --size: 25vmin;
-  --bg: hsl(calc(200 - (var(--on) * 160)), calc((20 + (var(--on) * 50)) * 1%), calc((20 + (var(--on) * 60)) * 1%));
-  --cord: hsl(0, 0%, calc((60 - (var(--on) * 50)) * 1%));
-  --stroke: hsl(0, 0%, calc((60 - (var(--on) * 50)) * 1%));
-  --shine: hsla(0, 0%, 100%, calc(0.75 - (var(--on) * 0.5)));
-  --cap: hsl(0, 0%, calc((40 + (var(--on) * 30)) * 1%));
-  --filament: hsl(45, calc(var(--on) * 80%), calc((25 + (var(--on) * 75)) * 1%));
-}
-body  {
-  min-height: 100vh;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-direction: column;
-}
