@@ -1,165 +1,74 @@
 <!DOCTYPE html>
 <html lang="es">
+
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Interruptor Animado — PokéAPI</title>
-<style>
-/* Tu CSS pegado aquí */
-* {
-  box-sizing: border-box;
-}
-:root {
-  --depth: 5vmin;
-  --on: 0;
-  --size: 25vmin;
-  --bg: hsl(calc(200 - (var(--on) * 160)), calc((20 + (var(--on) * 50)) * 1%), calc((20 + (var(--on) * 60)) * 1%));
-  --cord: hsl(0, 0%, calc((60 - (var(--on) * 50)) * 1%));
-  --stroke: hsl(0, 0%, calc((60 - (var(--on) * 50)) * 1%));
-  --shine: hsla(0, 0%, 100%, calc(0.75 - (var(--on) * 0.5)));
-  --cap: hsl(0, 0%, calc((40 + (var(--on) * 30)) * 1%));
-  --filament: hsl(45, calc(var(--on) * 80%), calc((25 + (var(--on) * 75)) * 1%));
-}
-body {
-  min-height: 100vh;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: var(--bg);
-  overflow: hidden;
-  font-family: system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial;
-}
-label {
-  position: absolute;
-  opacity: 0.5;
-  height: 100%;
-  width: 100%;
-  top: 0;
-  left: 0;
-  z-index: 2;
-}
-input[type="checkbox"] {
-  height: 0;
-  width: 0;
-  position: fixed;
-  left: 100%;
-  transform: scale(0);
-}
-.toggle {
-  height: var(--size);
-  width: var(--size);
-  transform: translate(-50%, -100%);
-  z-index: 2;
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate3d(-50%, -100%, calc(var(--depth) * 3));
-}
-/* Simple visual switch control for demo */
-.switch-ui{
-  position: absolute;
-  top: 1.5rem;
-  left: 50%;
-  transform: translateX(-50%);
-  z-index: 6;
-  display:flex;
-  align-items:center;
-  gap:0.5rem;
-  color: white;
-}
-.switch-ui input[type="checkbox"]{ transform: scale(1.4); cursor:pointer; }
-.pokemon-card {
-  margin-top: 20px;
-  padding: 10px 18px;
-  background: rgba(0,0,0,0.55);
-  border-radius: 12px;
-  width: 260px;
-  text-align: center;
-  color: #fff;
-  display: none;
-  z-index: 5;
-}
-.pokemon-card img{ width: 150px; height: 150px; object-fit: contain; }
-</style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Interruptor Animado — PokéAPI</title>
+  <link rel="stylesheet" href="style.css">
 </head>
+
 <body>
 
-<div class="switch-ui">
-  <label for="switchCheckbox">Encender luz y cargar Pokémon</label>
-  <input type="checkbox" id="switchCheckbox" aria-label="Interruptor" />
-</div>
+  <div class="switch-ui">
+    <label for="switchCheckbox">Encender luz y cargar Pokémon</label>
+    <input type="checkbox" id="switchCheckbox" aria-label="Interruptor" />
+  </div>
 
-<div class="toggle" aria-hidden="true">
-  <!-- Aquí iría tu SVG o elementos para la bombilla (opcional) -->
-</div>
+  <button class="big-button">¿Qué tipo de Pokémon eres?</button>
 
-<!-- Zona donde aparecerá la tarjeta del Pokémon -->
-<div id="pokemon" class="pokemon-card" aria-live="polite">
-  <h2 id="poke-name"></h2>
-  <img id="poke-img" src="" alt="Imagen del Pokémon" />
-  <p id="poke-type"></p>
-</div>
+  <div class="toggle" aria-hidden="true"></div>
 
-<script>
-// función que enciende/apaga la 'luz' y carga/oculta Pokémon
-async function loadPokemon() {
-  const card = document.getElementById('pokemon');
-  try {
-    const id = Math.floor(Math.random() * 151) + 1; // 1..151
-    const response = await fetch(`https://pokeapi.co/api/v2/pokemon/${id}`);
-    if (!response.ok) throw new Error('Error al obtener datos de la API');
-    const data = await response.json();
+  <div id="pokemon" class="pokemon-card" aria-live="polite">
+    <h2 id="poke-name"></h2>
+    <img id="poke-img" src="" alt="Imagen del Pokémon" />
+    <p id="poke-type"></p>
+  </div>
 
-    const nameEl = document.getElementById('poke-name');
-    const imgEl = document.getElementById('poke-img');
-    const typeEl = document.getElementById('poke-type');
+  <script>
+    async function loadPokemon() {
+      const card = document.getElementById('pokemon');
+      try {
+        const id = Math.floor(Math.random() * 151) + 1;
+        const response = await fetch(`https://pokeapi.co/api/v2/pokemon/${id}`);
+        if (!response.ok) throw new Error('Error al obtener datos de la API');
+        const data = await response.json();
 
-    nameEl.textContent = data.name ? data.name.toUpperCase() : 'N/A';
+        document.getElementById('poke-name').textContent =
+          data.name ? data.name.toUpperCase() : 'N/A';
 
-    // sprite por defecto (si no hay imagen, uso un placeholder SVG data URL)
-    const sprite = data.sprites && data.sprites.front_default ? data.sprites.front_default : '';
-    imgEl.src = sprite || 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="150" height="150"><rect width="100%" height="100%" fill="%23000"/><text x="50%" y="50%" font-size="18" fill="%23fff" text-anchor="middle" dominant-baseline="middle">sin imagen</text></svg>';
-    imgEl.alt = `Imagen de ${data.name || 'Pokémon'}`;
+        const sprite = data.sprites?.front_default || '';
+        document.getElementById('poke-img').src =
+          sprite ||
+          'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="150" height="150"><rect width="100%" height="100%" fill="%23000"/><text x="50%" y="50%" font-size="18" fill="%23fff" text-anchor="middle" dominant-baseline="middle">sin imagen</text></svg>';
 
-    const firstType = data.types && data.types[0] && data.types[0].type && data.types[0].type.name ? data.types[0].type.name : 'desconocido';
-    typeEl.textContent = 'Tipo: ' + firstType;
+        const firstType = data.types?.[0]?.type?.name ?? 'desconocido';
+        document.getElementById('poke-type').textContent = 'Tipo: ' + firstType;
 
-    card.style.display = 'block';
-  } catch (err) {
-    console.error(err);
-    // en caso de error mostramos un mensaje simple
-    const nameEl = document.getElementById('poke-name');
-    const imgEl = document.getElementById('poke-img');
-    const typeEl = document.getElementById('poke-type');
-    nameEl.textContent = 'Error al cargar';
-    imgEl.src = 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="150" height="150"><rect width="100%" height="100%" fill="%23000"/><text x="50%" y="50%" font-size="14" fill="%23fff" text-anchor="middle" dominant-baseline="middle">error</text></svg>';
-    typeEl.textContent = '';
-    card.style.display = 'block';
-  }
-}
+        card.style.display = 'block';
+      } catch (err) {
+        console.error(err);
+        document.getElementById('poke-name').textContent = 'Error al cargar';
+        document.getElementById('poke-img').src =
+          'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="150" height="150"><rect width="100%" height="100%" fill="%23000"/><text x="50%" y="50%" font-size="14" fill="%23fff" text-anchor="middle" dominant-baseline="middle">error</text></svg>';
+        document.getElementById('poke-type').textContent = '';
+        card.style.display = 'block';
+      }
+    }
 
-function toggleLight(isOn) {
-  // isOn: boolean
-  const numeric = isOn ? 1 : 0;
-  document.documentElement.style.setProperty('--on', numeric);
+    function toggleLight(isOn) {
+      document.documentElement.style.setProperty('--on', isOn ? 1 : 0);
+      const card = document.getElementById('pokemon');
 
-  const card = document.getElementById('pokemon');
-  if (isOn) {
-    // cargar un Pokémon cuando se enciende
-    loadPokemon();
-  } else {
-    // ocultar la tarjeta cuando se apaga
-    card.style.display = 'none';
-  }
-}
+      if (isOn) loadPokemon();
+      else card.style.display = 'none';
+    }
 
-// conectar el checkbox al comportamiento
-const checkbox = document.getElementById('switchCheckbox');
-checkbox.addEventListener('change', (e) => toggleLight(e.target.checked));
-
-// inicialización: respetar valor si el checkbox viene marcado
-toggleLight(checkbox.checked);
-</script>
+    const checkbox = document.getElementById('switchCheckbox');
+    checkbox.addEventListener('change', (e) => toggleLight(e.target.checked));
+    toggleLight(checkbox.checked);
+  </script>
 
 </body>
+
 </html>
